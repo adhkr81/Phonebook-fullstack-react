@@ -25,43 +25,47 @@ if (password.length > 0 && !user && !phoneNumber) {
     mongoose
     .connect(url)
     .then((result) => {
-      console.log('connected')
+      console.log('phonebook:')
   
   
       Phone.find({})
       .then(result => {
       result.forEach(current => {
-        console.log(current)
+        console.log(`${current.name} ${current.number}`)
       })
       mongoose.connection.close()
     })
   
     })
     .catch((err) => console.log(err))
+
+} else if (password.length > 0 && user && phoneNumber) {
+    mongoose
+    .connect(url)
+    .then((result) => {
+      console.log('connected')
+
+      const phone = new Phone({
+        name: user,
+        number: phoneNumber,
+      })
+
+      return phone.save()
+    })
+    .then(() => {
+      console.log(`added ${user} number ${phoneNumber} to phonebook`)
+      return mongoose.connection.close()
+
+    })
+    .catch((err) => console.log(err))
+    
 }
 
 
 
 
 
-mongoose
-  .connect(url)
-  .then((result) => {
-    console.log('connected')
 
-    const phone = new Phone({
-      name: user,
-      number: phoneNumber,
-    })
-
-    return phone.save()
-  })
-  .then(() => {
-    console.log(`added ${user} number ${phoneNumber} to phonebook`)
-    return mongoose.connection.close()
-
-  })
-  .catch((err) => console.log(err))
 
 
 
