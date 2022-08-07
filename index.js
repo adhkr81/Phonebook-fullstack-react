@@ -66,30 +66,19 @@ app.use(morgan((tokens, req, res) => {
       const body = request.body
       console.log(request.body)
 
-      if (!body) {
-        return response.status(400).json({error: "content missing"})
+      if (body === undefined) {
+        return response.status(400).json({ error: "content missing"})
       }
 
-      if (!body.name || !body.number) {
-        return response.status(401).json({error: "name or number missing"})
-      }
-
-      const unique = persons.find(curr => curr.name === body.name) 
-      console.log(unique)
-
-      if (unique) {
-        return response.status(401).json({error: "name must be unique"})
-      }
-
-      const person =  { 
-        id: generateId(),
-        name: body.name, 
+      const person = new Person({
+        name: body.name,
         number: body.number
-        }
+      }) 
 
-      persons = persons.concat(person)
+      person.save().then(savedPerson => {
+        response.json(savedPerson)
+      })
 
-      response.json(person)
     })
 
 
