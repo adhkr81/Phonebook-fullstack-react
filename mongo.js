@@ -13,12 +13,12 @@ const phoneNumber = process.argv[4]
 
 const url = `mongodb+srv://adhkr:${password}@cluster0.q7n1fgq.mongodb.net/phoneBook?retryWrites=true&w=majority`
 
-const noteSchema = new mongoose.Schema({
+const personSchema = new mongoose.Schema({
   name: String,
   number: String,
 })
 
-const Phone = mongoose.model('Phone', noteSchema)
+const Phone = mongoose.model('Person', personSchema)
 
 
 if (password.length > 0 && !user && !phoneNumber) {
