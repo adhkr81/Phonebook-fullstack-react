@@ -7,10 +7,21 @@ const cors = require("cors")
 //MODELS
 const Person = require("./models/person")
 
+//MIDDLEWARE
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
-
+app.use(errorHandler)
 app.use(morgan((tokens, req, res) => {
   return [
     tokens.method(req, res),
@@ -23,6 +34,8 @@ app.use(morgan((tokens, req, res) => {
 }))
 
 
+
+  //Get All
     app.get('/api/persons', (request, response) => {
     Person.find({}).then(persons => {
       console.log(persons)
@@ -30,38 +43,37 @@ app.use(morgan((tokens, req, res) => {
     })
   })
 
+  //Info
     app.get('/info', (request, response) => {
     response.send(`<p>Phonebook has info for ${persons.length} people</p>
                    <p>${new Date}</p>`)
   })
 
+  //Get by ID
     app.get('/api/persons/:id', (request, response) => {
-    id = Number(request.params.id)
-    const person = persons.find((curr) => curr.id === id)
+    id = request.params.id
 
-    if (person) {
-        response.json(person)
-    } else {
+    Person.findById(id).then(current => {
+      if (current) {
+        response.json(current)
+      } else {
         response.status(404).end()
-    }
+      }
+    }).catch(error => next(error))
     })
 
-    app.delete('/delete/:id', (request, response) => {
-        id = Number(request.params.id)
+    //Delete
+    app.delete('/api/persons/:id', (request, response, next) => {
+        id = request.params.id
 
-    persons = persons.find((curr) => curr.id !== id)
-
-    response.status(450).end()
+    Person.findByIdAndRemove(id).then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+        
     })
 
-
-    const generateId = () => {
-      const maxId = persons.length > 0
-        ? Math.max(...persons.map(n => n.id))
-        : 0
-      return maxId + 1
-    }
-
+    //Add new Person
     app.post('/api/persons', (request, response) => {
       const body = request.body
       console.log(request.body)
@@ -78,7 +90,23 @@ app.use(morgan((tokens, req, res) => {
       person.save().then(savedPerson => {
         response.json(savedPerson)
       })
+    })
 
+    //Update
+    app.put("/api/persons/:id", (request, response, next) => {
+      const body = request.body
+      const id = request.params.id
+
+      const person = {
+        name: body.name,
+        number: body.number
+      }
+
+      Person.findByIdAndUpdate(id, person, { new: true })
+      .then(updatedPerson => {
+        response.json(updatedPerson)
+      })
+      .catch(error => next(error))
     })
 
 
